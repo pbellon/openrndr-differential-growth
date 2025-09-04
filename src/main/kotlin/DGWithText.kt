@@ -16,7 +16,7 @@ fun main() = application {
 
     program {
         val record = ScreenRecorder().apply {
-            outputToVideo = true
+            outputToVideo = false
         }
 
         extend(record) {
@@ -53,8 +53,8 @@ fun main() = application {
             drawer.stroke = null
             drawer.fill = ColorRGBa.fromHex("#bb4430")
 
-            world.shapes.forEachIndexed(){ _index, shape ->
-                drawer.shape(shape)
+            with (drawer) {
+                world.draw()
             }
         }
     }
