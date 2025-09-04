@@ -1,19 +1,10 @@
 import differentialGrowth.DGSettings
 import differentialGrowth.DGWorld
-import org.openrndr.KEY_SPACEBAR
 import org.openrndr.application
 import org.openrndr.color.ColorRGBa
-import org.openrndr.draw.BufferMultisample
-import org.openrndr.draw.colorBuffer
 import org.openrndr.draw.font.loadFace
-import org.openrndr.draw.renderTarget
-import org.openrndr.extra.compositor.compose
-import org.openrndr.extra.compositor.draw
-import org.openrndr.extra.compositor.post
-import org.openrndr.extra.fx.blur.GaussianBloom
-import org.openrndr.extra.shapes.bounds.bounds
 import org.openrndr.extra.shapes.text.shapesFromText
-import org.openrndr.extra.videoprofiles.H265Profile
+import org.openrndr.extra.videoprofiles.gif
 import org.openrndr.ffmpeg.ScreenRecorder
 import org.openrndr.math.Vector2
 
@@ -24,15 +15,14 @@ fun main() = application {
     }
 
     program {
-        extend(ScreenRecorder()) {
-            frameClock = true
-            outputToVideo = false
-            frameRate = 30
-            multisample = BufferMultisample.SampleCount(4)
-            profile = H265Profile().apply {
-                constantRateFactor = 18
-            }
+        val record = ScreenRecorder().apply {
+            outputToVideo = true
         }
+
+        extend(record) {
+            gif()
+        }
+
 
         val face =
             loadFace("https://github.com/IBM/plex/raw/master/packages/plex-mono/fonts/complete/otf/IBMPlexMono-Bold.otf")

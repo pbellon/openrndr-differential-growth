@@ -4,7 +4,7 @@ out
 .idea
 .gradle
 .lwjgl
-video/
+#video/
 screenshots/
 gui-parameters/
 ffmpegOutput.txt

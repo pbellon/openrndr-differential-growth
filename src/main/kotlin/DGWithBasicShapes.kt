@@ -2,6 +2,8 @@ import differentialGrowth.*
 import org.openrndr.application
 import org.openrndr.color.ColorRGBa
 import org.openrndr.extra.noise.scatter
+import org.openrndr.extra.videoprofiles.gif
+import org.openrndr.ffmpeg.ScreenRecorder
 import org.openrndr.shape.Circle
 import kotlin.random.Random
 
@@ -13,6 +15,14 @@ fun main() = application {
     }
 
     program {
+        val record = ScreenRecorder().apply {
+            outputToVideo = false
+        }
+
+        extend(record) {
+            gif()
+        }
+
         val palette = listOf(
             ColorRGBa.fromHex( "#0eb1d2").shade(0.76),
             ColorRGBa.fromHex("#bb4430"),
