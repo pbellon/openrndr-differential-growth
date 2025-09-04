@@ -11,24 +11,6 @@ import utils.closestPointOfBound
 import utils.lerp
 import kotlin.random.Random
 
-fun List<Vector2>.asVertices(closed: Boolean): List<DGVertex> {
-    val max = this.size - 1
-    return this.mapIndexed { i , position ->
-        DGVertex(
-            position = position,
-            previous = if (i > 0) {
-                this[i-1]
-            } else if (closed) {
-                this[this.size - 1]
-            } else null,
-            next = if (i < max) {
-                this[i+1]
-            } else if (closed) {
-                this[0]
-            } else null,
-        )
-    }
-}
 
 /**
  * Equivalent of a OPENRNDR's [ShapeContour] in the differential growth system. Central class in the system, [DGShape]
@@ -43,53 +25,52 @@ class DGContour(
      */
     private val fillColor: ColorRGBa? = null
 ) {
-    var lastNodeInjectTime = 0.0
-    var closed = baseContour.closed
+    private var lastNodeInjectTime = 0.0
+    private var closed = baseContour.closed
     var empty = baseContour.empty
-//    var winding = baseContour.winding
-    var coords: List<Vector2> = listOf()
+    private var coordinates: List<Vector2> = listOf()
 
     init {
         val perimeter = baseContour.length
 
-        coords = List(settings.subSplitsNumber) {
+        coordinates = List(settings.subSplitsNumber) {
             val p = it / settings.subSplitsNumber.toDouble()
             baseContour.pointAtLength(p * perimeter, 0.1)
         }
 
-        if (settings.debugMode) println("[DGContour.init] Created ${coords.size} coords: $coords")
+        if (settings.debugMode) println("[DGContour.init] Created ${coordinates.size} coords: $coordinates")
     }
 
-    fun getForcesOnVertex(vertice: DGVertex, tree: KDTreeNode<Vector2>): Vector2 {
+    private fun getForcesOnVertex(vertex: DGVertex, tree: KDTreeNode<Vector2>): Vector2 {
         var force = Vector2.ZERO
 
-        // skip OOB vertice
-        if (!settings.bounds.contains(vertice.position)) {
+        // skip OOB vertices
+        if (!settings.bounds.contains(vertex.position)) {
             return force
         }
 
         force += attractionForceToDirectNeighbors(
-            vertice,
+            vertex,
             minDistance = settings.minDistance,
             intensity = settings.attractionForce
         )
 
         force += repulsionForceFromNeighbors(
-            vertice,
+            vertex,
             repulsionRadius = settings.repulsionRadius,
             intensity = settings.repulsionForce,
             tree = tree
         )
 
         force += alignmentForceToDirectNeighbors(
-            vertice,
+            vertex,
             intensity = settings.alignmentForce,
         )
 
         // repulsion force from edge
-        val (distance, closest) = closestPointOfBound(settings.bounds, vertice.position)
+        val (distance, closest) = closestPointOfBound(settings.bounds, vertex.position)
         if (distance > 0 && distance < settings.repulsionRadius) {
-            val repulsion = -(closest + vertice.position).normalized * 1.5
+            val repulsion = -(closest + vertex.position).normalized * 1.5
             force += repulsion
         }
 
@@ -183,8 +164,8 @@ class DGContour(
             return
         }
 
-        if (settings.debugMode) println("[DGContour.iterate] Before: ${coords.size} coords")
-        var nextVertices = coords.asVertices(closed).toMutableList()
+        if (settings.debugMode) println("[DGContour.iterate] Before: ${coordinates.size} coords")
+        var nextVertices = coordinates.asVertices(closed).toMutableList()
 
         // first we apply forces on all vertices
         nextVertices.forEach { v ->
@@ -206,19 +187,19 @@ class DGContour(
         }
 
         // filter OoB vertices & write as resulting coords
-        coords = nextVertices.map{ it.position }.filter { settings.bounds.contains(it) }
+        coordinates = nextVertices.map{ it.position }.filter { settings.bounds.contains(it) }
 
         // if previously closed and have only 2 coords we totally empty the list
-        if (closed && coords.size <= 2 || coords.isEmpty()) {
-            coords = listOf()
+        if (closed && coordinates.size <= 2 || coordinates.isEmpty()) {
+            coordinates = listOf()
             empty = true
         }
 
-        if (settings.debugMode) println("[DGContour.iterate] After: ${coords.size} coords")
+        if (settings.debugMode) println("[DGContour.iterate] After: ${coordinates.size} coords")
     }
 
     fun points(): Set<Vector2> {
-        return coords.toSet()
+        return coordinates.toSet()
     }
 
     context(Drawer)
@@ -232,6 +213,6 @@ class DGContour(
     /** Drawable `ShapeContour` */
     val contour: ShapeContour
         get() {
-            return constructContour(coords)
+            return constructContour(coordinates)
         }
 }

@@ -15,15 +15,15 @@ fun attractionForce(position:Vector2, attractor: Vector2, intensity: Double, min
     return force
 }
 
-fun attractionForceToDirectNeighbors(vertice: DGVertex, minDistance: Double, intensity: Double): Vector2 {
+fun attractionForceToDirectNeighbors(vertex: DGVertex, minDistance: Double, intensity: Double): Vector2 {
     var force = Vector2.ZERO
     // Move towards next node, if there is one
-    if (vertice.next != null) {
-        force += attractionForce(vertice.position, vertice.next!!, minDistance, intensity)
+    if (vertex.next != null) {
+        force += attractionForce(vertex.position, vertex.next!!, minDistance, intensity)
     }
     // Move towards previous node, if there is one
-    if (vertice.previous != null) {
-        force += attractionForce(vertice.position, vertice.previous!!, minDistance, intensity)
+    if (vertex.previous != null) {
+        force += attractionForce(vertex.position, vertex.previous!!, minDistance, intensity)
     }
 
     return force
@@ -34,14 +34,14 @@ fun attractionForceToDirectNeighbors(vertice: DGVertex, minDistance: Double, int
  *       between various algorithm (Quadtree, KDTree, KNN, ...)
  */
 fun repulsionForceFromNeighbors(
-    vertice: DGVertex,
+    vertex: DGVertex,
     repulsionRadius: Double,
     intensity: Double,
     tree: KDTreeNode<Vector2>
 ): Vector2 {
-    var position = vertice.position
+    val position = vertex.position
     var force = Vector2.ZERO
-    tree.findAllInRadius(position, repulsionRadius).forEach() { node ->
+    tree.findAllInRadius(position, repulsionRadius).forEach { node ->
         if (node != position) {
             val diff = position - node
             force += diff.normalized * intensity
@@ -50,15 +50,15 @@ fun repulsionForceFromNeighbors(
     return force
 }
 
-fun alignmentForceToDirectNeighbors(vertice: DGVertex, intensity: Double): Vector2 {
+fun alignmentForceToDirectNeighbors(vertex: DGVertex, intensity: Double): Vector2 {
     var force = Vector2.ZERO
-    val prev = vertice.previous
-    val next = vertice.next
+    val prev = vertex.previous
+    val next = vertex.next
     if (prev != null && next != null) {
         // Find the midpoint between the neighbors of this node
         val midpoint = (prev + next) / 2.0
         // and compute attraction force to it with intensity
-        force = attractionForce(vertice.position, attractor =  midpoint, intensity)
+        force = attractionForce(vertex.position, attractor =  midpoint, intensity)
     }
     return force
 }
